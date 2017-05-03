@@ -253,8 +253,24 @@ func (v *VolumeManager) waitForPod(podService core.PodInterface, agentID string,
 					return true, nil
 				}
 
+			case watch.Added:
+				pod, ok := event.Object.(*v1.Pod)
+				if !ok {
+					return false, fmt.Errorf("Unexpected object type: %v", reflect.TypeOf(event.Object))
+				}
+
+				if isAgentContainerRunning(pod) {
+					return true, nil
+				}
+
+			case watch.Error:
+				return false, fmt.Errorf("Received an error when provisioning pod: %s", event.Object.GetObjectKind().GroupVersionKind().Kind)
+
+			case watch.Deleted:
+				return false, errors.New("Unexpected deletion event when provisioning pod")
 			default:
-				return false, fmt.Errorf("Unexpected pod watch event: %s", event.Type)
+				//return false, fmt.Errorf("Unexpected pod watch event: %s", event.Type)
+				return true, nil
 			}
 
 		case <-timer.C():

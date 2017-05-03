@@ -143,8 +143,25 @@ func (d *DiskCreator) waitForDisk(pvcService core.PersistentVolumeClaimInterface
 					return true, nil
 				}
 
+			case watch.Added:
+				pvc, ok := event.Object.(*v1.PersistentVolumeClaim)
+				if !ok {
+					return false, fmt.Errorf("Unexpected object type: %v", reflect.TypeOf(event.Object))
+				}
+
+				if isDiskReady(pvc) {
+					return true, nil
+				}
+
+			case watch.Error:
+				return false, fmt.Errorf("Received an error when provisioning pvc: %s", event.Object.GetObjectKind().GroupVersionKind().Kind)
+
+			case watch.Deleted:
+				return false, errors.New("Unexpected deletion event when provisioning pvc")
+
 			default:
-				return false, fmt.Errorf("Unexpected pvc watch event: %s", event.Type)
+				return false, fmt.Errorf("Unexpected pvc watch event: %v Object: %v Type: %s", reflect.TypeOf(event), reflect.TypeOf(event.Object), event.Type)
+				//return true, nil
 			}
 
 		case <-timer.C():
