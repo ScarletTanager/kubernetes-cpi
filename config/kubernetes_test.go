@@ -167,7 +167,7 @@ var _ = Describe("Kubernetes Config", func() {
 				},
 				"current_context": "oidcContext",
 				"users": {
-					"admin": { "auth_provider": "oidc", "token": "admin-oidc-token", "idp_issuer_url": "https://issuer.com", "client_secret": "my-secret", "client_id": "my-id"}
+					"admin": { "auth_provider": "oidc", "token": "admin-oidc-token", "idp_issuer_url": "https://issuer.com", "client_secret": "my-secret", "client_id": "my-id","refresh_token": "my-refresh-token" }
 				}
 			}`)
 
@@ -187,6 +187,7 @@ var _ = Describe("Kubernetes Config", func() {
 				IdpIssuerURL: "https://issuer.com",
 				ClientSecret: "my-secret",
 				ClientID:     "my-id",
+				RefreshToken: "my-refresh-token",
 			}))
 		})
 
@@ -201,6 +202,8 @@ var _ = Describe("Kubernetes Config", func() {
 						"idp-issuer-url": "https://issuer.com",
 						"client-secret":  "my-secret",
 						"client-id":      "my-id",
+						"id-token":       "admin-oidc-token",
+						"refresh-token":  "my-refresh-token",
 					},
 				},
 				Extensions: map[string]runtime.Object{},

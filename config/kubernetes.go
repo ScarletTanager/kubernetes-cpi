@@ -18,6 +18,7 @@ type AuthInfo struct {
 	IdpIssuerURL          string `json:"idp_issuer_url,omitempty"`
 	ClientSecret          string `json:"client_secret,omitempty"`
 	ClientID              string `json:"client_id,omitempty"`
+	RefreshToken          string `json:"refresh_token,omitempty"`
 }
 
 type Context struct {
@@ -70,6 +71,8 @@ func (a *AuthInfo) api() *clientcmdapi.AuthInfo {
 			authProvider.Config["idp-issuer-url"] = a.IdpIssuerURL
 			authProvider.Config["client-secret"] = a.ClientSecret
 			authProvider.Config["client-id"] = a.ClientID
+			authProvider.Config["id-token"] = a.Token
+			authProvider.Config["refresh-token"] = a.RefreshToken
 		}
 
 		info.AuthProvider = authProvider
