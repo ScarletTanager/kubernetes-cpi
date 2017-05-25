@@ -14,6 +14,7 @@ type AuthInfo struct {
 	Token                 string `json:"token,omitempty"`
 	Username              string `json:"username,omitempty"`
 	Password              string `json:"password,omitempty"`
+	AuthProvider          string `json:"auth_provider,omitempty"`
 }
 
 type Context struct {
@@ -55,6 +56,11 @@ func (a *AuthInfo) api() *clientcmdapi.AuthInfo {
 	}
 	if len(a.ClientKeyData) != 0 {
 		info.ClientKeyData = []byte(a.ClientKeyData)
+	}
+	if len(a.AuthProvider) > 0 {
+		info.AuthProvider = &clientcmdapi.AuthProviderConfig{
+			Name: a.AuthProvider,
+		}
 	}
 	return info
 }

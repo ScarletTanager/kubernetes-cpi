@@ -6,9 +6,9 @@ import (
 	"k8s.io/client-go/pkg/runtime"
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 
+	"github.com/ScarletTanager/kubernetes-cpi/config"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"github.com/ScarletTanager/kubernetes-cpi/config"
 )
 
 var _ = Describe("Kubernetes Config", func() {
@@ -152,6 +152,38 @@ var _ = Describe("Kubernetes Config", func() {
 				CurrentContext: "current-context",
 				Extensions:     map[string]runtime.Object{},
 				Preferences:    *clientcmdapi.NewPreferences(),
+			}))
+		})
+	})
+
+	Context("Using OIDC Tokens for Authentication", func() {
+		BeforeEach(func() {
+			configData = []byte(`{
+				"clusters": {
+					"oidcCluster": { "server": "https://191.168.64.17:8443", "certificate_authority_data": "certificate-authority-data" }
+				},
+				"contexts": {
+					"oidcContext": { "cluster": "oidcCluster", "user": "admin", "namespace": "bosh" }
+				},
+				"current_context": "oidcContext",
+				"users": {
+					"admin": { "auth_provider": "oidc", "token": "admin-oidc-token" }
+				}
+			}`)
+
+			err := json.Unmarshal([]byte(configData), &kubeConf)
+			Expect(err).NotTo(HaveOccurred())
+		})
+		It("Sets the Username and Password to empty Strings", func() {
+			adminInfo := kubeConf.AuthInfos["admin"]
+			Expect(adminInfo.Username).To(BeZero())
+			Expect(adminInfo.Password).To(BeZero())
+		})
+
+		It("Sets the auth provider correctly", func() {
+			Expect(kubeConf.AuthInfos["admin"]).To(Equal(&config.AuthInfo{
+				Token:        "admin-oidc-token",
+				AuthProvider: "oidc",
 			}))
 		})
 	})
