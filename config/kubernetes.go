@@ -15,6 +15,9 @@ type AuthInfo struct {
 	Username              string `json:"username,omitempty"`
 	Password              string `json:"password,omitempty"`
 	AuthProvider          string `json:"auth_provider,omitempty"`
+	IdpIssuerURL          string `json:"idp_issuer_url,omitempty"`
+	ClientSecret          string `json:"client_secret,omitempty"`
+	ClientID              string `json:"client_id,omitempty"`
 }
 
 type Context struct {
@@ -58,9 +61,18 @@ func (a *AuthInfo) api() *clientcmdapi.AuthInfo {
 		info.ClientKeyData = []byte(a.ClientKeyData)
 	}
 	if len(a.AuthProvider) > 0 {
-		info.AuthProvider = &clientcmdapi.AuthProviderConfig{
+		authProvider := &clientcmdapi.AuthProviderConfig{
 			Name: a.AuthProvider,
 		}
+
+		if a.AuthProvider == "oidc" {
+			authProvider.Config = make(map[string]string)
+			authProvider.Config["idp-issuer-url"] = a.IdpIssuerURL
+			authProvider.Config["client-secret"] = a.ClientSecret
+			authProvider.Config["client-id"] = a.ClientID
+		}
+
+		info.AuthProvider = authProvider
 	}
 	return info
 }

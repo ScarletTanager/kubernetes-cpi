@@ -167,7 +167,7 @@ var _ = Describe("Kubernetes Config", func() {
 				},
 				"current_context": "oidcContext",
 				"users": {
-					"admin": { "auth_provider": "oidc", "token": "admin-oidc-token" }
+					"admin": { "auth_provider": "oidc", "token": "admin-oidc-token", "idp_issuer_url": "https://issuer.com", "client_secret": "my-secret", "client_id": "my-id"}
 				}
 			}`)
 
@@ -180,10 +180,30 @@ var _ = Describe("Kubernetes Config", func() {
 			Expect(adminInfo.Password).To(BeZero())
 		})
 
-		It("Sets the auth provider correctly", func() {
+		It("Deserializes the auth provider and provider config correctly", func() {
 			Expect(kubeConf.AuthInfos["admin"]).To(Equal(&config.AuthInfo{
 				Token:        "admin-oidc-token",
 				AuthProvider: "oidc",
+				IdpIssuerURL: "https://issuer.com",
+				ClientSecret: "my-secret",
+				ClientID:     "my-id",
+			}))
+		})
+
+		It("Sets the provider config correctly in the api client config", func() {
+			cc := kubeConf.ClientConfig()
+
+			Expect(cc.AuthInfos["admin"]).To(Equal(&clientcmdapi.AuthInfo{
+				Token: "admin-oidc-token",
+				AuthProvider: &clientcmdapi.AuthProviderConfig{
+					Name: "oidc",
+					Config: map[string]string{
+						"idp-issuer-url": "https://issuer.com",
+						"client-secret":  "my-secret",
+						"client-id":      "my-id",
+					},
+				},
+				Extensions: map[string]runtime.Object{},
 			}))
 		})
 	})
